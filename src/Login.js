@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './Login.css';
-import { auth } from './firebase'
+import { auth } from './firebase';
 import { useDispatch } from 'react-redux';
-import login from './features/userSlice.js'
+import { login } from './features/userSlice';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -13,6 +13,20 @@ function Login() {
 
   const logginToApp = (e) => {
     e.preventDefault();
+
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .then((userAuth) => {
+        dispatch(
+          login({
+            email: userAuth.user.email,
+            uid: userAuth.user.uid,
+            displayName: userAuth.user.displayName,
+            profileUrl: userAuth.user.photoURL,
+          }),
+        );
+      })
+      .catch((error) => alert(error));
   };
 
   const register = () => {
@@ -20,22 +34,26 @@ function Login() {
       return alert('Please enter a full name!');
     }
 
-    auth.createUserWithEmailAndPassword(email, password)
-    .then((userAuth) => {
-      userAuth.user
-        .updateProfile({
-          displayName: name,
-          photoURL: profilePic,
-        })
-        .then(() => {
-            dispatch(login({
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then((userAuth) => {
+        userAuth.user
+          .updateProfile({
+            displayName: name,
+            photoURL: profilePic,
+          })
+          .then(() => {
+            dispatch(
+              login({
                 email: userAuth.user.email,
                 uid: userAuth.user.uid,
                 displayName: name,
                 photoURL: profilePic,
-            }))
-        });
-    }).catch((error) => alert(error.message));
+              }),
+            );
+          });
+      })
+      .catch((error) => alert(error));
   };
 
   return (
